@@ -37,6 +37,8 @@ export default function Login() {
         password,
       });
 
+      console.log("result", result);
+
       if (result?.error) {
         setError(t("error.invalidCredentials"));
         setIsLoading(false);
