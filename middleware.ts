@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import createIntlMiddleware from "next-intl/middleware";
 import type { NextRequest } from "next/server";
 
@@ -16,48 +16,49 @@ const intlMiddleware = createIntlMiddleware({
 const publicRoutes = [
   "/",
   "/:locale",
-  "/:locale/login",
-  "/:locale/register",
+  "/:locale/pages",
   "/:locale/view/:slug",
   "/api/pages/view/:slug",
 ];
 
-// Middleware function
-export default async function middleware(req: NextRequest) {
-  // Apply internationalization middleware first
-  const intlResponse = intlMiddleware(req);
-
-  // Check if the request is for a public route
+// Function to check if a route is public
+function isPublicRoute(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isPublicRoute = publicRoutes.some((route) => {
+  return publicRoutes.some((route) => {
     // Convert route patterns with params to regex
     const pattern = route.replace(/:\w+/g, "[^/]+");
     const regex = new RegExp(`^${pattern}$`);
     return regex.test(pathname);
   });
+}
 
-  // If it's a public route, just apply the intl middleware
-  if (isPublicRoute) {
+// Middleware function that combines Clerk and next-intl
+export default clerkMiddleware(async (auth, req) => {
+  // Apply internationalization middleware first
+  const intlResponse = intlMiddleware(req);
+
+  // Check if the request is for a public route
+  if (isPublicRoute(req)) {
     return intlResponse;
   }
 
-  // For protected routes, check authentication
-  const { userId } = getAuth(req);
-
-  // If the user is not authenticated and trying to access a protected route,
-  // redirect to the login page
-  if (!userId) {
+  try {
+    // For protected routes, check authentication using auth.protect()
+    await auth.protect();
+    return intlResponse;
+  } catch {
+    // If authentication fails, redirect to the pages list
     const locale = req.nextUrl.pathname.split("/")[1] || "en";
-    const loginUrl = new URL(`/${locale}/login`, req.url);
-    loginUrl.searchParams.set("redirect_url", encodeURIComponent(req.url));
-    return NextResponse.redirect(loginUrl);
+    const pagesUrl = new URL(`/${locale}/pages`, req.url);
+    return NextResponse.redirect(pagesUrl);
   }
+});
 
-  // User is authenticated, proceed with the request
-  return intlResponse;
-}
-
-// Configure the middleware matcher
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    // Always run for API routes
+    "/(api|trpc)(.*)",
+  ],
 };

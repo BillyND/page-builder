@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]";
+import { getAuth } from "@clerk/nextjs/server";
 import dbConnect from "@/app/lib/db";
 import Page from "@/app/models/Page";
 import mongoose from "mongoose";
@@ -17,9 +16,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userId } = getAuth(request);
 
-    if (!session) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -35,7 +34,7 @@ export async function GET(
     // Find page by ID and creator
     const page = await Page.findOne({
       _id: id,
-      createdBy: session.user.id,
+      createdBy: userId,
     });
 
     if (!page) {
@@ -58,9 +57,9 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userId } = getAuth(request);
 
-    if (!session) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -107,7 +106,7 @@ export async function PUT(
 
     // Update page
     const updatedPage = await Page.findOneAndUpdate(
-      { _id: id, createdBy: session.user.id },
+      { _id: id, createdBy: userId },
       body,
       { new: true, runValidators: true }
     );
@@ -132,9 +131,9 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userId } = getAuth(request);
 
-    if (!session) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -150,7 +149,7 @@ export async function DELETE(
     // Delete page
     const deletedPage = await Page.findOneAndDelete({
       _id: id,
-      createdBy: session.user.id,
+      createdBy: userId,
     });
 
     if (!deletedPage) {

@@ -1,20 +1,10 @@
 import React from "react";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/app/api/auth/[...nextauth]";
-import PageList from "@/app/components/pages/PageList";
+import AuthCheck from "@/app/components/pages/AuthCheck";
 
-export default async function PagesPage() {
-  const session = await getServerSession(authOptions);
-
-  // Redirect to login if not authenticated
-  if (!session) {
-    redirect("/login");
-  }
-
+export default function PagesPage() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <PageList />
+      <AuthCheck />
     </main>
   );
 }

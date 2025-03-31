@@ -20,20 +20,7 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --secondary: #8b5cf6;
-    --secondary-hover: #7c3aed;
-    --accent: #1f2937;
-    --border: #374151;
-    --input-bg: #111827;
-    --input-focus: #1f2937;
-  }
-}
+/* Remove dark mode styles */
 
 body {
   background: var(--background);

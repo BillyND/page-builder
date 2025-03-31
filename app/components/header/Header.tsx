@@ -3,54 +3,64 @@
 import { useTranslations } from "next-intl";
 import LanguageSelector from "./LanguageSelector";
 import Link from "next/link";
-import { useAuth, SignOutButton } from "@clerk/nextjs";
+import {
+  SignInButton,
+  UserButton,
+  ClerkLoaded,
+  ClerkLoading,
+  SignedIn,
+  SignedOut,
+} from "@clerk/nextjs";
+import { Button } from "../ui/button";
+import { Skeleton } from "@/app/components/ui/skeleton";
 
 export default function Header() {
   const t = useTranslations("app");
   const authT = useTranslations("auth.login");
-  const homeT = useTranslations("home");
-  const { isSignedIn } = useAuth();
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm">
+    <header className="bg-white shadow-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <div className="flex-shrink-0 flex items-center">
             <Link
               href="/"
-              className="text-xl font-bold text-gray-900 dark:text-white"
+              className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
             >
               {t("title")}
             </Link>
           </div>
-          <div className="flex items-center space-x-4">
-            {isSignedIn ? (
-              <>
-                <Link
-                  href="/profile"
-                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm"
-                >
-                  {t("profile")}
-                </Link>
-                <SignOutButton>
-                  <button className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm">
-                    {homeT("signOut")}
-                  </button>
-                </SignOutButton>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm"
-              >
-                {authT("signIn")}
-              </Link>
-            )}
-            <div className="flex items-center">
-              <span className="mr-2 text-sm text-gray-600 dark:text-gray-300">
-                {t("language")}:
-              </span>
-              <LanguageSelector />
+          <div className="flex items-center space-x-6">
+            <Link
+              href="/pages"
+              className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
+            >
+              Pages
+            </Link>
+
+            <div className="flex items-center space-x-4">
+              <ClerkLoading>
+                <Skeleton className="h-8 w-8 rounded-full" />
+              </ClerkLoading>
+              <ClerkLoaded>
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <Button
+                      variant="outline"
+                      className="border border-blue-500 text-blue-500 hover:bg-blue-50"
+                    >
+                      {authT("signIn")}
+                    </Button>
+                  </SignInButton>
+                </SignedOut>
+                <SignedIn>
+                  <UserButton />
+                </SignedIn>
+              </ClerkLoaded>
+
+              <div className="flex items-center pl-4 border-l border-gray-200">
+                <LanguageSelector />
+              </div>
             </div>
           </div>
         </div>

@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]";
+import { getAuth } from "@clerk/nextjs/server";
 import dbConnect from "@/app/lib/db";
 import Page from "@/app/models/Page";
 
 // GET /api/pages - Get all pages for the current user
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userId } = getAuth(request);
 
-    if (!session) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -27,7 +26,7 @@ export async function GET(request: NextRequest) {
       $text?: { $search: string };
     }
 
-    const query: PageQuery = { createdBy: session.user.id };
+    const query: PageQuery = { createdBy: userId };
 
     // Add status filter if provided
     if (status && ["draft", "published"].includes(status)) {
@@ -55,9 +54,9 @@ export async function GET(request: NextRequest) {
 // POST /api/pages - Create a new page
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const { userId } = getAuth(request);
 
-    if (!session) {
+    if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Create page
     const page = await Page.create({
       ...body,
-      createdBy: session.user.id,
+      createdBy: userId,
     });
 
     return NextResponse.json(page, { status: 201 });

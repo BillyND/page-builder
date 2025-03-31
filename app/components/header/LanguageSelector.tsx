@@ -2,42 +2,60 @@
 
 import { useLocale } from "next-intl";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { FiGlobe } from "react-icons/fi";
 
 export default function LanguageSelector() {
   const locale = useLocale();
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLocale = e.target.value;
+  const languages = [
+    { code: "en", name: "English", flag: "🇺🇸" },
+    { code: "vi", name: "Tiếng Việt", flag: "🇻🇳" },
+  ];
+
+  const currentLanguage =
+    languages.find((lang) => lang.code === locale) || languages[0];
+
+  const handleLanguageChange = (langCode: string) => {
     // Get the path without the locale prefix
     const path = pathname.replace(/^\/[a-z]{2}(?:\/|$)/, "/");
     // Redirect to the new locale path
-    window.location.href = `/${newLocale}${path}`;
+    window.location.href = `/${langCode}${path}`;
+    setIsOpen(false);
   };
 
   return (
     <div className="relative">
-      <select
-        className="appearance-none bg-transparent border border-gray-300 dark:border-gray-600 rounded-md py-1 pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent"
-        value={locale}
-        onChange={handleChange}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none"
       >
-        <option value="en">English</option>
-        <option value="vi">Tiếng Việt</option>
-      </select>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-        <svg
-          className="h-4 w-4 fill-current"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 20 20"
-        >
-          <path
-            fillRule="evenodd"
-            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-            clipRule="evenodd"
-          />
-        </svg>
-      </div>
+        <FiGlobe className="h-5 w-5" />
+        <span className="text-sm font-medium">{currentLanguage.flag}</span>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-100">
+          {languages.map((language) => (
+            <button
+              key={language.code}
+              onClick={() => handleLanguageChange(language.code)}
+              className={`block w-full text-left px-4 py-2 text-sm ${
+                locale === language.code
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <div className="flex items-center">
+                <span className="mr-2">{language.flag}</span>
+                {language.name}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

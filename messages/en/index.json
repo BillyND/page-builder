@@ -33,6 +33,8 @@
       "continueWith": "Or continue with",
       "signInWithGoogle": "Sign in with Google",
       "successMessage": "Registration successful! Please log in with your new account.",
+      "loginRequired": "Login Required",
+      "loginToManagePages": "Please sign in to manage your pages",
       "error": {
         "invalidCredentials": "Invalid email or password",
         "generic": "Something went wrong. Please try again."

@@ -33,6 +33,8 @@
       "continueWith": "Hoặc tiếp tục với",
       "signInWithGoogle": "Đăng nhập bằng Google",
       "successMessage": "Đăng ký thành công! Vui lòng đăng nhập với tài khoản mới của bạn.",
+      "loginRequired": "Yêu cầu đăng nhập",
+      "loginToManagePages": "Vui lòng đăng nhập để quản lý các trang của bạn",
       "error": {
         "invalidCredentials": "Email hoặc mật khẩu không hợp lệ",
         "generic": "Đã xảy ra lỗi. Vui lòng thử lại."

@@ -1,7 +1,4 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 export async function generateMetadata({
@@ -26,33 +23,11 @@ export async function generateMetadata({
   }
 }
 
-export default async function Home() {
-  const session = await getServerSession(authOptions);
+export default async function Home({ params }: { params: { locale: string } }) {
+  // Await the params to ensure locale is available
+  const resolvedParams = await Promise.resolve(params);
+  const locale = resolvedParams.locale || "en";
 
-  if (!session) {
-    redirect("/login");
-  }
-
-  const t = await getTranslations("home");
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold mb-4">
-          {t("welcome", { name: session.user?.name || "" })}
-        </h1>
-        <p className="text-gray-600 dark:text-gray-300 mb-6">
-          {t("loggedInAs", { email: session.user?.email || "" })}
-        </p>
-        <div className="flex justify-center">
-          <Link
-            href="/api/auth/signout"
-            className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
-          >
-            {t("signOut")}
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+  // Redirect to the pages list
+  redirect(`/${locale}/pages`);
 }
