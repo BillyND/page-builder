@@ -24,7 +24,9 @@ export async function GET(
 
     await dbConnect();
 
-    const { id } = params;
+    // Ensure params is properly resolved
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
 
     // Validate ID format
     if (!isValidObjectId(id)) {
@@ -65,7 +67,10 @@ export async function PUT(
 
     await dbConnect();
 
-    const { id } = params;
+    // Ensure params is properly resolved
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+
     const body = await request.json();
 
     // Validate ID format
@@ -139,7 +144,9 @@ export async function DELETE(
 
     await dbConnect();
 
-    const { id } = params;
+    // Ensure params is properly resolved
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
 
     // Validate ID format
     if (!isValidObjectId(id)) {

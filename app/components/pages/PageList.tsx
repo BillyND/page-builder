@@ -225,7 +225,7 @@ const PageList: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
                         <Link
-                          href={`/view/${page.slug}`}
+                          href={`/pages/view/${page.slug}`}
                           target="_blank"
                           className="text-gray-600 hover:text-gray-900"
                           title="View page"

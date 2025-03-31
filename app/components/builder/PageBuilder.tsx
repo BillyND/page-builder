@@ -200,7 +200,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
 
   // Preview page
   const handlePreview = () => {
-    window.open(`/view/${pageId}`, "_blank");
+    console.log("Page ID:", pageId);
+    window.open(`/pages/view/${pageId}`, "_blank");
   };
 
   // Go back to pages list

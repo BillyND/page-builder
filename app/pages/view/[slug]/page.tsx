@@ -1,4 +1,5 @@
 import React from "react";
+import mongoose from "mongoose";
 import dbConnect from "@/app/lib/db";
 import Page from "@/app/models/Page";
 import { elementsToHtml } from "@/app/lib/elementToHtml";
@@ -13,17 +14,37 @@ export default async function ViewPage({ params }: ViewPageProps) {
   // Connect to database
   await dbConnect();
 
-  console.log("===>params:", params);
-
   // Ensure params is properly resolved
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
+  console.log("===>slug:", slug);
+
   // Fetch page data
-  const page = await Page.findOne({
-    slug: slug,
-    status: "published",
-  });
+  let page;
+  try {
+    // First try to find by slug
+    page = await Page.findOne({
+      slug,
+      status: "published",
+    });
+
+    // If not found by slug, try to find by _id
+    if (!page && typeof slug === "string") {
+      try {
+        const objectId = new mongoose.Types.ObjectId(slug);
+        page = await Page.findOne({
+          _id: objectId,
+          status: "published",
+        });
+      } catch {
+        // Invalid ObjectId format, ignore this error
+        console.log("Invalid ObjectId format:", slug);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching page:", error);
+  }
 
   // Return 404 if page not found
   if (!page) {

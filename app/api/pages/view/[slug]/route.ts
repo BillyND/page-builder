@@ -12,6 +12,8 @@ export async function GET(
 
     const { slug } = params;
 
+    console.log("Slug:", slug);
+
     // Find published page by slug
     const page = await Page.findOne({
       slug,
