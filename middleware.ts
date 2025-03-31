@@ -1,25 +1,9 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware } from "@clerk/nextjs/server";
-import createIntlMiddleware from "next-intl/middleware";
 import type { NextRequest } from "next/server";
 
-// Create the internationalization middleware
-const intlMiddleware = createIntlMiddleware({
-  // A list of all locales that are supported
-  locales: ["en", "vi"],
-
-  // If this locale is matched, pathnames work without a prefix (e.g. `/about`)
-  defaultLocale: "en",
-});
-
 // Define public routes that don't require authentication
-const publicRoutes = [
-  "/",
-  "/:locale",
-  "/:locale/pages",
-  "/:locale/view/:slug",
-  "/api/pages/view/:slug",
-];
+const publicRoutes = ["/", "/pages", "/view/:slug", "/api/pages/view/:slug"];
 
 // Function to check if a route is public
 function isPublicRoute(req: NextRequest) {
@@ -32,24 +16,20 @@ function isPublicRoute(req: NextRequest) {
   });
 }
 
-// Middleware function that combines Clerk and next-intl
+// Middleware function that combines Clerk
 export default clerkMiddleware(async (auth, req) => {
-  // Apply internationalization middleware first
-  const intlResponse = intlMiddleware(req);
-
   // Check if the request is for a public route
   if (isPublicRoute(req)) {
-    return intlResponse;
+    return NextResponse.next();
   }
 
   try {
     // For protected routes, check authentication using auth.protect()
     await auth.protect();
-    return intlResponse;
+    return NextResponse.next();
   } catch {
     // If authentication fails, redirect to the pages list
-    const locale = req.nextUrl.pathname.split("/")[1] || "en";
-    const pagesUrl = new URL(`/${locale}/pages`, req.url);
+    const pagesUrl = new URL("/pages", req.url);
     return NextResponse.redirect(pagesUrl);
   }
 });

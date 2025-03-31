@@ -1,7 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
-import LanguageSelector from "./LanguageSelector";
 import Link from "next/link";
 import {
   SignInButton,
@@ -15,9 +13,6 @@ import { Button } from "../ui/button";
 import { Skeleton } from "@/app/components/ui/skeleton";
 
 export default function Header() {
-  const t = useTranslations("app");
-  const authT = useTranslations("auth.login");
-
   return (
     <header className="bg-white shadow-md border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -27,7 +22,7 @@ export default function Header() {
               href="/"
               className="text-xl font-bold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              {t("title")}
+              Next Page Builder
             </Link>
           </div>
           <div className="flex items-center space-x-6">
@@ -49,7 +44,7 @@ export default function Header() {
                       variant="outline"
                       className="border border-blue-500 text-blue-500 hover:bg-blue-50"
                     >
-                      {authT("signIn")}
+                      Sign in
                     </Button>
                   </SignInButton>
                 </SignedOut>
@@ -59,7 +54,7 @@ export default function Header() {
               </ClerkLoaded>
 
               <div className="flex items-center pl-4 border-l border-gray-200">
-                <LanguageSelector />
+                {/* <LanguageSelector /> */}
               </div>
             </div>
           </div>

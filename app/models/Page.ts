@@ -12,7 +12,7 @@ export interface IPage extends mongoose.Document {
   content: string; // JSON content with page elements
   contentHtml?: string; // Generated HTML content
   status: "draft" | "published";
-  createdBy: mongoose.Types.ObjectId;
+  createdBy: string;
 }
 
 const PageSchema = new mongoose.Schema<IPage>(
@@ -52,18 +52,16 @@ const PageSchema = new mongoose.Schema<IPage>(
       default: "draft",
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: [true, "Please provide a user"],
     },
   },
   { timestamps: true }
 );
 
-// Create a text index for search functionality
-PageSchema.index({ title: "text", description: "text" });
+// Add text index for search functionality
+PageSchema.index({ title: 'text', description: 'text' });
 
-// Check if the model exists before creating a new one
-// This is important for Next.js hot reloading
-export default mongoose.models.Page ||
-  mongoose.model<IPage>("Page", PageSchema);
+const Page = mongoose.models.Page || mongoose.model<IPage>("Page", PageSchema);
+
+export default Page;

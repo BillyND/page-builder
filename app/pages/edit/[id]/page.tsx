@@ -23,9 +23,13 @@ export default async function EditPagePage({ params }: EditPageProps) {
   // Connect to database
   await dbConnect();
 
+  // Ensure params is properly resolved
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
+
   // Fetch page data
   const page = await Page.findOne({
-    _id: params.id,
+    _id: id,
     createdBy: session.user.id,
   });
 
@@ -49,7 +53,7 @@ export default async function EditPagePage({ params }: EditPageProps) {
           status: page.status,
         }}
         isEditing={true}
-        pageId={params.id}
+        pageId={id}
       />
     </main>
   );

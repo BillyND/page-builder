@@ -2,10 +2,8 @@
 
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
 
 export default function UserProfile() {
-  const t = useTranslations("profile");
   const { user, isLoaded } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -20,11 +18,11 @@ export default function UserProfile() {
   });
 
   if (!isLoaded) {
-    return <div>{t("loading")}</div>;
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    return <div>{t("notSignedIn")}</div>;
+    return <div>Not signed in</div>;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +42,7 @@ export default function UserProfile() {
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 max-w-md mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-        {t("title")}
+        Profile
       </h2>
 
       {isEditing ? (
@@ -54,7 +52,7 @@ export default function UserProfile() {
               htmlFor="firstName"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t("firstName")}
+              First Name
             </label>
             <input
               type="text"
@@ -70,7 +68,7 @@ export default function UserProfile() {
               htmlFor="lastName"
               className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              {t("lastName")}
+              Last Name
             </label>
             <input
               type="text"
@@ -87,13 +85,13 @@ export default function UserProfile() {
               onClick={() => setIsEditing(false)}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
             >
-              {t("cancel")}
+              Cancel
             </button>
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {t("save")}
+              Save
             </button>
           </div>
         </form>
@@ -101,7 +99,7 @@ export default function UserProfile() {
         <div className="space-y-4">
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {t("email")}
+              Email
             </p>
             <p className="mt-1 text-sm text-gray-900 dark:text-white">
               {user.primaryEmailAddress?.emailAddress}
@@ -110,7 +108,7 @@ export default function UserProfile() {
 
           <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {t("name")}
+              Name
             </p>
             <p className="mt-1 text-sm text-gray-900 dark:text-white">
               {user.fullName || "Not set"}
@@ -122,7 +120,7 @@ export default function UserProfile() {
               onClick={() => setIsEditing(true)}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
             >
-              {t("edit")}
+              Edit
             </button>
           </div>
         </div>

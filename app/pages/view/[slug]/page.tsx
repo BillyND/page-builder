@@ -13,9 +13,15 @@ export default async function ViewPage({ params }: ViewPageProps) {
   // Connect to database
   await dbConnect();
 
+  console.log("===>params:", params);
+
+  // Ensure params is properly resolved
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+
   // Fetch page data
   const page = await Page.findOne({
-    slug: params.slug,
+    slug: slug,
     status: "published",
   });
 
