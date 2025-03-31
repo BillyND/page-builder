@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
-import SessionProvider from "../components/providers/SessionProvider";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../api/auth/[...nextauth]";
+import { ClerkProvider } from "@clerk/nextjs";
 import LocaleProvider from "../components/providers/LocaleProvider";
 import Header from "../components/header/Header";
 
@@ -37,8 +35,6 @@ export default async function RootLayout({
   const resolvedParams = await Promise.resolve(params);
   const locale = resolvedParams?.locale || "en";
 
-  const session = await getServerSession(authOptions);
-
   // Use a try-catch block to handle potential import errors
   let messages;
   try {
@@ -53,12 +49,12 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <LocaleProvider locale={locale} messages={messages}>
-          <SessionProvider session={session}>
+        <ClerkProvider>
+          <LocaleProvider locale={locale} messages={messages}>
             <Header />
             <main>{children}</main>
-          </SessionProvider>
-        </LocaleProvider>
+          </LocaleProvider>
+        </ClerkProvider>
       </body>
     </html>
   );

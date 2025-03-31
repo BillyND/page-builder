@@ -4,7 +4,20 @@
     "welcome": "Welcome",
     "language": "Language",
     "signIn": "Sign In",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "profile": "Profile"
+  },
+  "profile": {
+    "title": "Your Profile",
+    "email": "Email",
+    "name": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "edit": "Edit Profile",
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading...",
+    "notSignedIn": "Not signed in"
   },
   "auth": {
     "login": {

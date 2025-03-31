@@ -4,7 +4,20 @@
     "welcome": "Chào mừng",
     "language": "Ngôn ngữ",
     "signIn": "Đăng nhập",
-    "signOut": "Đăng xuất"
+    "signOut": "Đăng xuất",
+    "profile": "Hồ sơ"
+  },
+  "profile": {
+    "title": "Hồ Sơ Của Bạn",
+    "email": "Email",
+    "name": "Tên",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "edit": "Chỉnh Sửa Hồ Sơ",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "loading": "Đang tải...",
+    "notSignedIn": "Chưa đăng nhập"
   },
   "auth": {
     "login": {

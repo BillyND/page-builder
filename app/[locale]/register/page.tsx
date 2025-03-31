@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSignUp } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import AuthForm from "../../components/auth/AuthForm";
 import AuthInput from "../../components/auth/AuthInput";
-import { useTranslations } from "next-intl";
 
 export default function Register() {
   const t = useTranslations("auth.register");
   const router = useRouter();
+  const { isLoaded, signUp, setActive } = useSignUp();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +21,11 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isLoaded) {
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -36,29 +44,31 @@ export default function Register() {
     }
 
     try {
-      // Send registration request to API
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-        }),
+      // Create the user with Clerk
+      const result = await signUp.create({
+        firstName: name.split(" ")[0],
+        lastName: name.split(" ").slice(1).join(" ") || undefined,
+        emailAddress: email,
+        password,
       });
 
-      const data = await response.json();
+      // Start the email verification process
+      await signUp.prepareEmailAddressVerification({
+        strategy: "email_code",
+      });
 
-      if (!response.ok) {
-        throw new Error(data.error || t("error.generic"));
+      if (result.status === "complete") {
+        // If sign up is complete, set the session active
+        await setActive({ session: result.createdSessionId });
+        router.push("/");
+      } else {
+        // If email verification is required, redirect to verification page
+        // In a real app, you might want to create a verification page
+        router.push("/login?registered=true");
       }
-
-      // Redirect to login page after successful registration
-      router.push("/login?registered=true");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("error.generic"));
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string }> };
+      setError(clerkError.errors?.[0]?.message || t("error.generic"));
       setIsLoading(false);
     }
   };

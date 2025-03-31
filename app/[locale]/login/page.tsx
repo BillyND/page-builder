@@ -1,16 +1,18 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useSignIn } from "@clerk/nextjs";
+import { useTranslations } from "next-intl";
 import AuthForm from "../../components/auth/AuthForm";
 import AuthInput from "../../components/auth/AuthInput";
-import { useTranslations } from "next-intl";
 
 export default function Login() {
   const t = useTranslations("auth.login");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isLoaded, signIn, setActive } = useSignIn();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -27,27 +29,33 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isLoaded) {
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false,
-        email,
+      const result = await signIn.create({
+        identifier: email,
         password,
       });
 
-      console.log("result", result);
-
-      if (result?.error) {
-        setError(t("error.invalidCredentials"));
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.push("/");
+      } else {
+        // This should not happen when using email/password
+        setError(t("error.generic"));
         setIsLoading(false);
-        return;
       }
-
-      router.push("/");
-    } catch {
-      setError(t("error.generic"));
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string }> };
+      setError(
+        clerkError.errors?.[0]?.message || t("error.invalidCredentials")
+      );
       setIsLoading(false);
     }
   };
@@ -55,6 +63,15 @@ export default function Login() {
   const forgotPasswordLink = (
     <a
       href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        if (isLoaded) {
+          signIn.create({
+            identifier: email,
+            strategy: "reset_password_email_code",
+          });
+        }
+      }}
       className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 font-medium"
     >
       {t("forgotPassword")}
