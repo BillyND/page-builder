@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "Page Builder",
+    "welcome": "Welcome",
+    "language": "Language",
+    "signIn": "Sign In",
+    "signOut": "Sign Out"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to your account to continue",
+      "email": "Email",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "signingIn": "Signing in...",
+      "noAccount": "Don't have an account?",
+      "signUp": "Sign up",
+      "continueWith": "Or continue with",
+      "signInWithGoogle": "Sign in with Google",
+      "successMessage": "Registration successful! Please log in with your new account.",
+      "error": {
+        "invalidCredentials": "Invalid email or password",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "register": {
+      "title": "Create an account",
+      "subtitle": "Sign up to get started with our platform",
+      "fullName": "Full Name",
+      "email": "Email",
+      "password": "Password",
+      "confirmPassword": "Confirm Password",
+      "passwordRequirement": "Must be at least 8 characters",
+      "createAccount": "Create account",
+      "creatingAccount": "Creating account...",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "continueWith": "Or sign up with",
+      "signUpWithGoogle": "Sign up with Google",
+      "error": {
+        "passwordsDoNotMatch": "Passwords do not match",
+        "passwordTooShort": "Password must be at least 8 characters",
+        "generic": "Something went wrong. Please try again."
+      }
+    }
+  },
+  "home": {
+    "welcome": "Welcome, {name}",
+    "loggedInAs": "You are logged in with {email}",
+    "signOut": "Sign Out"
+  }
+}
