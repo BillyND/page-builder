@@ -61,23 +61,50 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [pageTitle] = useState(initialData?.title || "");
+  const [pageTitle, setPageTitle] = useState(initialData?.title || "");
+  const [pageSlug, setPageSlug] = useState("");
+  const [pageMetaTitle, setPageMetaTitle] = useState("");
+  const [pageMetaDescription, setPageMetaDescription] = useState("");
+  const [pageStatus, setPageStatus] = useState("draft");
   const [draggedElement, setDraggedElement] = useState<PageElement | null>(
     null
   );
 
-  // Initialize elements from saved content if available
+  // Fetch page data when page loads
   useEffect(() => {
-    if (initialData?.content) {
+    const fetchPageData = async () => {
       try {
-        const parsedContent = JSON.parse(initialData.content) as PageStructure;
-        setElements(parsedContent.elements || []);
+        const response = await fetch(`/api/pages/${pageId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch page data");
+        }
+        const pageData = await response.json();
+
+        // Set page settings
+        setPageTitle(pageData.title || "");
+        setPageSlug(pageData.slug || "");
+        setPageMetaTitle(pageData.metaTags?.title || "");
+        setPageMetaDescription(pageData.metaTags?.description || "");
+        setPageStatus(pageData.status || "draft");
+
+        // Set page content
+        if (pageData.content) {
+          try {
+            const parsedContent = JSON.parse(pageData.content) as PageStructure;
+            setElements(parsedContent.elements || []);
+          } catch (err) {
+            console.error("Error parsing page content:", err);
+            setError("Failed to load page content");
+          }
+        }
       } catch (err) {
-        console.error("Error parsing page content:", err);
-        setError("Failed to load page content");
+        console.error("Error fetching page data:", err);
+        setError("Failed to load page data");
       }
-    }
-  }, [initialData]);
+    };
+
+    fetchPageData();
+  }, [pageId]);
 
   // Configure DnD sensors
   const sensors = useSensors(
@@ -376,7 +403,7 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
     [selectedElementId, updateElementInTree]
   );
 
-  // Save page content
+  // Save page content and settings
   const handleSave = async () => {
     setLoading(true);
     setError("");
@@ -392,6 +419,13 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          title: pageTitle,
+          slug: pageSlug,
+          metaTags: {
+            title: pageMetaTitle,
+            description: pageMetaDescription,
+          },
+          status: pageStatus,
           content: JSON.stringify(pageStructure),
         }),
       });
@@ -413,8 +447,21 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
 
   // Preview page
   const handlePreview = () => {
-    console.log("Page ID:", pageId);
-    window.open(`/pages/view/${pageId}`, "_blank");
+    window.open(`/pages/view/${pageSlug || pageId}`, "_blank");
+  };
+
+  // Handle publishing page
+  const handlePublish = async () => {
+    setPageStatus("published");
+    // Save immediately after status change
+    await handleSave();
+  };
+
+  // Handle unpublishing page
+  const handleUnpublish = async () => {
+    setPageStatus("draft");
+    // Save immediately after status change
+    await handleSave();
   };
 
   // Go back to pages list
@@ -577,21 +624,23 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
                     </label>
                     <div className="flex space-x-2">
                       <button
-                        className="px-3 py-2 bg-green-100 text-green-800 rounded-md flex items-center"
-                        onClick={() => {
-                          // Implement publish functionality
-                          console.log("Publishing page");
-                        }}
+                        className={`px-3 py-2 ${
+                          pageStatus === "published"
+                            ? "bg-green-600 text-white"
+                            : "bg-green-100 text-green-800"
+                        } rounded-md flex items-center`}
+                        onClick={handlePublish}
                       >
                         <FiCheck className="mr-1" size={14} />
                         Publish
                       </button>
                       <button
-                        className="px-3 py-2 bg-gray-100 text-gray-800 rounded-md flex items-center"
-                        onClick={() => {
-                          // Implement unpublish functionality
-                          console.log("Unpublishing page");
-                        }}
+                        className={`px-3 py-2 ${
+                          pageStatus === "draft"
+                            ? "bg-gray-600 text-white"
+                            : "bg-gray-100 text-gray-800"
+                        } rounded-md flex items-center`}
+                        onClick={handleUnpublish}
                       >
                         <FiX className="mr-1" size={14} />
                         Unpublish
@@ -607,7 +656,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
                       type="text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       placeholder="page-url-slug"
-                      // Implementation needed to save slug
+                      value={pageSlug}
+                      onChange={(e) => setPageSlug(e.target.value)}
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Will be accessible at /pages/view/[slug]
@@ -622,7 +672,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
                       type="text"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       placeholder="Page Title"
-                      // Implementation needed to save meta title
+                      value={pageMetaTitle}
+                      onChange={(e) => setPageMetaTitle(e.target.value)}
                     />
                   </div>
 
@@ -634,7 +685,8 @@ const PageBuilder: React.FC<PageBuilderProps> = ({ pageId, initialData }) => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       rows={3}
                       placeholder="Brief description for search engines"
-                      // Implementation needed to save meta description
+                      value={pageMetaDescription}
+                      onChange={(e) => setPageMetaDescription(e.target.value)}
                     />
                   </div>
                 </div>
