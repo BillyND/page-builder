@@ -6,6 +6,26 @@ import { PageElement, ElementType } from "../components/builder/types";
  * @returns HTML string representation of the element
  */
 export function elementToHtml(element: PageElement): string {
+  // Extract Tailwind classes and inline styles from element.styles
+  const getTailwindAndStyles = (styles: Record<string, string>) => {
+    const tailwindClasses: string[] = [];
+    const inlineStyles: Record<string, string> = {};
+
+    Object.entries(styles).forEach(([key, value]) => {
+      // Check if it's a Tailwind class (starting with "tw-")
+      if (key.startsWith("tw-")) {
+        tailwindClasses.push(value);
+      } else {
+        inlineStyles[key] = value;
+      }
+    });
+
+    return {
+      classes: tailwindClasses.join(" "),
+      styles: inlineStyles,
+    };
+  };
+
   // Convert styles object to inline CSS string
   const styleToString = (styles: Record<string, string>): string => {
     return Object.entries(styles)
@@ -16,54 +36,51 @@ export function elementToHtml(element: PageElement): string {
   switch (element.type) {
     case ElementType.HEADING: {
       const { level, content, styles } = element;
-      return `<h${level} style="${styleToString(
-        styles
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
+      return `<h${level} class="${classes}" style="${styleToString(
+        inlineStyles
       )}">${content}</h${level}>`;
     }
 
     case ElementType.TEXT: {
       const { content, styles } = element;
-      return `<p style="${styleToString(styles)}">${content}</p>`;
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
+      return `<p class="${classes}" style="${styleToString(
+        inlineStyles
+      )}">${content}</p>`;
     }
 
     case ElementType.IMAGE: {
       const { src, alt, styles } = element;
-      return `<img src="${src}" alt="${alt}" style="${styleToString(
-        styles
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
+      return `<img src="${src}" alt="${alt}" class="${classes}" style="${styleToString(
+        inlineStyles
       )}" />`;
     }
 
     case ElementType.BUTTON: {
       const { content, link, styles } = element;
-      return `<a href="${link || "#"}" style="${styleToString(
-        styles
-      )}" class="button">${content}</a>`;
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
+      return `<a href="${
+        link || "#"
+      }" class="${classes} button" style="${styleToString(
+        inlineStyles
+      )}">${content}</a>`;
     }
 
     case ElementType.CONTAINER: {
       const { children, layout, columns, styles } = element;
-      let containerStyles = { ...styles };
+      const containerStyles = { ...styles };
+      const layoutClasses = [];
 
-      // Add layout-specific styles
+      // Add layout-specific styles or Tailwind classes
       if (layout === "horizontal") {
-        containerStyles = {
-          ...containerStyles,
-          display: "flex",
-          flexDirection: "row",
-        };
+        layoutClasses.push("flex flex-row");
       } else if (layout === "grid") {
-        containerStyles = {
-          ...containerStyles,
-          display: "grid",
-          gridTemplateColumns: `repeat(${columns || 2}, 1fr)`,
-        };
+        layoutClasses.push(`grid grid-cols-${columns || 2}`);
       } else {
         // Default to vertical layout
-        containerStyles = {
-          ...containerStyles,
-          display: "flex",
-          flexDirection: "column",
-        };
+        layoutClasses.push("flex flex-col");
       }
 
       // Recursively convert children to HTML
@@ -71,39 +88,44 @@ export function elementToHtml(element: PageElement): string {
         .map((child) => elementToHtml(child))
         .join("");
 
-      return `<div style="${styleToString(
-        containerStyles
+      const { classes, styles: inlineStyles } =
+        getTailwindAndStyles(containerStyles);
+      const combinedClasses = `${classes} ${layoutClasses.join(" ")}`.trim();
+
+      return `<div class="${combinedClasses}" style="${styleToString(
+        inlineStyles
       )}">${childrenHtml}</div>`;
     }
 
     case ElementType.FORM: {
       const { fields, submitLabel, action, method, styles } = element;
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
 
-      // Generate form fields HTML
+      // Generate form fields HTML with Tailwind classes
       const fieldsHtml = fields
         .map((field) => {
           const { id, type, label, placeholder, required, options } = field;
           let fieldHtml = "";
 
-          // Label
-          fieldHtml += `<label for="${id}" style="display: block; margin-bottom: 0.5rem;">${label}${
+          // Label with Tailwind
+          fieldHtml += `<label for="${id}" class="block mb-2 text-sm font-medium">${label}${
             required ? " *" : ""
           }</label>`;
 
-          // Field input
+          // Field input with Tailwind
           switch (type) {
             case "textarea":
               fieldHtml += `<textarea id="${id}" name="${id}" placeholder="${
                 placeholder || ""
               }" ${
                 required ? "required" : ""
-              } style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;"></textarea>`;
+              } class="w-full p-2 mb-4 border rounded-md"></textarea>`;
               break;
 
             case "select":
               fieldHtml += `<select id="${id}" name="${id}" ${
                 required ? "required" : ""
-              } style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;">`;
+              } class="w-full p-2 mb-4 border rounded-md">`;
               if (options) {
                 fieldHtml += options
                   .map(
@@ -116,26 +138,26 @@ export function elementToHtml(element: PageElement): string {
               break;
 
             case "checkbox":
-              fieldHtml = `<div style="margin-bottom: 1rem;">
+              fieldHtml = `<div class="mb-4">
                 <input type="checkbox" id="${id}" name="${id}" ${
                 required ? "required" : ""
-              } />
-                <label for="${id}" style="display: inline-block; margin-left: 0.5rem;">${label}</label>
+              } class="mr-2" />
+                <label for="${id}" class="inline-block">${label}</label>
               </div>`;
               break;
 
             case "radio":
-              fieldHtml = `<div style="margin-bottom: 1rem;">
-                <p style="margin-bottom: 0.5rem;">${label}${
-                required ? " *" : ""
-              }</p>`;
+              fieldHtml = `<div class="mb-4">
+                <p class="mb-2">${label}${required ? " *" : ""}</p>`;
               if (options) {
                 options.forEach((option, index) => {
-                  fieldHtml += `<div>
+                  fieldHtml += `<div class="flex items-center mb-1">
                     <input type="radio" id="${id}_${index}" name="${id}" value="${
                     option.value
-                  }" ${index === 0 && required ? "required" : ""} />
-                    <label for="${id}_${index}" style="display: inline-block; margin-left: 0.5rem;">${
+                  }" ${
+                    index === 0 && required ? "required" : ""
+                  } class="mr-2" />
+                    <label for="${id}_${index}" class="inline-block">${
                     option.label
                   }</label>
                   </div>`;
@@ -150,7 +172,7 @@ export function elementToHtml(element: PageElement): string {
                 placeholder || ""
               }" ${
                 required ? "required" : ""
-              } style="width: 100%; padding: 0.5rem; margin-bottom: 1rem;" />`;
+              } class="w-full p-2 mb-4 border rounded-md" />`;
           }
 
           return fieldHtml;
@@ -159,38 +181,43 @@ export function elementToHtml(element: PageElement): string {
 
       return `<form action="${action || ""}" method="${
         method || "POST"
-      }" style="${styleToString(styles)}">
+      }" class="${classes}" style="${styleToString(inlineStyles)}">
         ${fieldsHtml}
-        <button type="submit" style="padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border: none; border-radius: 0.25rem; cursor: pointer;">${submitLabel}</button>
+        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">${submitLabel}</button>
       </form>`;
     }
 
     case ElementType.VIDEO: {
       const { src, controls, autoplay, loop, muted, styles } = element;
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
 
       // Check if it's a YouTube or Vimeo embed
       if (src.includes("youtube.com") || src.includes("vimeo.com")) {
-        return `<iframe src="${src}" style="${styleToString(
-          styles
+        return `<iframe src="${src}" class="${classes}" style="${styleToString(
+          inlineStyles
         )}" frameborder="0" allowfullscreen></iframe>`;
       }
 
       // Regular video
       return `<video src="${src}" ${controls ? "controls" : ""} ${
         autoplay ? "autoplay" : ""
-      } ${loop ? "loop" : ""} ${muted ? "muted" : ""} style="${styleToString(
-        styles
-      )}"></video>`;
+      } ${loop ? "loop" : ""} ${
+        muted ? "muted" : ""
+      } class="${classes}" style="${styleToString(inlineStyles)}"></video>`;
     }
 
     case ElementType.DIVIDER: {
       const { styles } = element;
-      return `<hr style="${styleToString(styles)}" />`;
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
+      return `<hr class="${classes}" style="${styleToString(inlineStyles)}" />`;
     }
 
     case ElementType.SPACER: {
       const { height, styles } = element;
-      return `<div style="height: ${height}; ${styleToString(styles)}"></div>`;
+      const { classes, styles: inlineStyles } = getTailwindAndStyles(styles);
+      return `<div class="${classes}" style="height: ${height}; ${styleToString(
+        inlineStyles
+      )}"></div>`;
     }
 
     default:
@@ -209,7 +236,7 @@ export function elementsToHtml(elements: PageElement[]): string {
     .join("");
 
   return `
-    <div class="page-content">
+    <div class="page-content max-w-7xl mx-auto">
       ${elementsHtml}
     </div>
   `;

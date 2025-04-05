@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
-import { PageElement, ElementType } from "./types";
-import { FiTrash2, FiCopy } from "react-icons/fi";
+import { PageElement } from "./types";
+import ElementRenderer from "../elements/ElementRenderer";
 
 interface CanvasProps {
   elements: PageElement[];
@@ -18,279 +18,91 @@ const Canvas: React.FC<CanvasProps> = ({
   onDuplicateElement,
   onDeleteElement,
 }) => {
-  const { setNodeRef, isOver } = useDroppable({
+  // State for maximized elements
+  const [maximizedElementId, setMaximizedElementId] = useState<string | null>(
+    null
+  );
+
+  // Configure droppable area
+  const { setNodeRef, isOver, active } = useDroppable({
     id: "canvas",
     data: {
-      accepts: Object.values(ElementType),
+      accepts: ["element-template", "element"], // Accept both templates and elements
     },
   });
 
-  // Render a specific element based on its type
-  const renderElement = (element: PageElement) => {
-    switch (element.type) {
-      case ElementType.HEADING:
-        return (
-          <div
-            key={element.id}
-            className={`relative p-4 mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={() => onSelectElement(element.id)}
-            style={element.styles}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-            {element.level === 1 && <h1>{element.content}</h1>}
-            {element.level === 2 && <h2>{element.content}</h2>}
-            {element.level === 3 && <h3>{element.content}</h3>}
-            {element.level === 4 && <h4>{element.content}</h4>}
-            {element.level === 5 && <h5>{element.content}</h5>}
-            {element.level === 6 && <h6>{element.content}</h6>}
-          </div>
-        );
+  // Toggle element maximized state
+  const handleToggleMaximize = (id: string) => {
+    setMaximizedElementId(maximizedElementId === id ? null : id);
+  };
 
-      case ElementType.TEXT:
-        return (
-          <div
-            key={element.id}
-            className={`relative p-4 mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={() => onSelectElement(element.id)}
-            style={element.styles}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-            <p>{element.content}</p>
-          </div>
-        );
+  // Recursive function to render elements
+  const renderElement = (element: PageElement): React.ReactNode => {
+    const isMaximized = maximizedElementId === element.id;
 
-      case ElementType.IMAGE:
-        return (
-          <div
-            key={element.id}
-            className={`relative p-4 mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={() => onSelectElement(element.id)}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-            <img
-              src={element.src}
-              alt={element.alt}
-              style={element.styles}
-              className="max-w-full"
-            />
-          </div>
-        );
-
-      case ElementType.BUTTON:
-        return (
-          <div
-            key={element.id}
-            className={`relative p-4 mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={() => onSelectElement(element.id)}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-            <button style={element.styles}>{element.content}</button>
-          </div>
-        );
-
-      case ElementType.CONTAINER:
-        return (
-          <div
-            key={element.id}
-            className={`relative p-4 mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelectElement(element.id);
-            }}
-            style={element.styles}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-            <div
-              className={`${
-                element.layout === "horizontal"
-                  ? "flex flex-row"
-                  : element.layout === "grid"
-                  ? "grid"
-                  : "flex flex-col"
-              }`}
-              style={
-                element.layout === "grid"
-                  ? {
-                      gridTemplateColumns: `repeat(${
-                        element.columns || 2
-                      }, 1fr)`,
-                    }
-                  : {}
-              }
-            >
-              {element.children?.map((child) => renderElement(child))}
-            </div>
-          </div>
-        );
-
-      case ElementType.DIVIDER:
-        return (
-          <div
-            key={element.id}
-            className={`relative p-4 mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={() => onSelectElement(element.id)}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-            <hr style={element.styles} />
-          </div>
-        );
-
-      case ElementType.SPACER:
-        return (
-          <div
-            key={element.id}
-            className={`relative mb-4 ${
-              selectedElementId === element.id
-                ? "outline outline-2 outline-blue-500"
-                : "hover:outline hover:outline-1 hover:outline-gray-300"
-            }`}
-            onClick={() => onSelectElement(element.id)}
-            style={{ height: element.height, ...element.styles }}
-          >
-            {selectedElementId === element.id && (
-              <ElementControls
-                id={element.id}
-                onDuplicate={onDuplicateElement}
-                onDelete={onDeleteElement}
-              />
-            )}
-          </div>
-        );
-
-      // Add more element types as needed
-
-      default:
-        return (
-          <div
-            key={element.id}
-            className="p-4 mb-4 border border-gray-300 rounded"
-          >
-            Unknown element type: {element.type}
-          </div>
-        );
-    }
+    return (
+      <ElementRenderer
+        key={element.id}
+        element={element}
+        isSelected={selectedElementId === element.id}
+        onSelect={onSelectElement}
+        onDuplicate={onDuplicateElement}
+        onDelete={onDeleteElement}
+        renderElement={renderElement} // Pass down for container elements
+        isMaximized={isMaximized}
+        onToggleMaximize={
+          // Only allow maximize for top-level elements
+          elements.some((e) => e.id === element.id)
+            ? () => handleToggleMaximize(element.id)
+            : undefined
+        }
+        allowDrag={true}
+      />
+    );
   };
 
   return (
     <div
       ref={setNodeRef}
-      className={`flex-1 p-8 bg-gray-50 overflow-y-auto ${
-        isOver ? "bg-blue-50" : ""
-      }`}
+      className={`flex-1 p-4 lg:p-8 overflow-y-auto transition-colors duration-200 ${
+        isOver ? "bg-blue-50 bg-opacity-70" : "bg-gray-50"
+      } ${active ? "ring-2 ring-blue-400 ring-inset" : ""}`}
+      data-testid="canvas-area"
     >
-      <div className="max-w-4xl mx-auto bg-white min-h-[calc(100vh-200px)] shadow-sm p-8 rounded">
+      <div
+        className={`max-w-4xl mx-auto bg-white shadow-md rounded-lg min-h-[calc(100vh-200px)] p-6 lg:p-8 transition-all duration-300 ${
+          maximizedElementId ? "shadow-xl" : "shadow-sm"
+        }`}
+      >
         {elements.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-300 rounded-lg">
-            <p className="text-gray-500 mb-2">
-              Drag and drop elements from the sidebar
-            </p>
-            <p className="text-gray-400 text-sm">
-              or click an element to add it to the page
-            </p>
+            <div className="flex flex-col items-center space-y-2 p-8 text-center">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </div>
+              <p className="text-gray-500 font-medium">Your page is empty</p>
+              <p className="text-gray-400 text-sm">
+                Drag and drop elements from the sidebar to get started
+              </p>
+            </div>
           </div>
         ) : (
-          elements.map((element) => renderElement(element))
+          <div className="space-y-2">{elements.map(renderElement)}</div>
         )}
       </div>
-    </div>
-  );
-};
-
-interface ElementControlsProps {
-  id: string;
-  onDuplicate: (id: string) => void;
-  onDelete: (id: string) => void;
-}
-
-const ElementControls: React.FC<ElementControlsProps> = ({
-  id,
-  onDuplicate,
-  onDelete,
-}) => {
-  return (
-    <div className="absolute top-0 right-0 flex bg-white border border-gray-200 rounded shadow-sm z-10">
-      <button
-        className="p-1 hover:bg-gray-100"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDuplicate(id);
-        }}
-        title="Duplicate"
-      >
-        <FiCopy size={14} />
-      </button>
-      <button
-        className="p-1 hover:bg-gray-100 text-red-500"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (confirm("Are you sure you want to delete this element?")) {
-            onDelete(id);
-          }
-        }}
-        title="Delete"
-      >
-        <FiTrash2 size={14} />
-      </button>
     </div>
   );
 };
